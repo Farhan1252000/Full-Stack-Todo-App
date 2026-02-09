@@ -27,10 +27,9 @@ def upgrade():
         sa.Column('description', sa.Text, nullable=True),
         sa.Column('completed', sa.Boolean, nullable=False, server_default='false'),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
-        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
-        
-        # Foreign key constraint (references external Better Auth users table)
-        sa.ForeignKeyConstraint(['user_id'], ['auth.users.id'], ondelete='CASCADE')
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP"))
+        # Note: Foreign key constraint to auth.users is commented out since Better Auth table may not exist yet
+        # sa.ForeignKeyConstraint(['user_id'], ['auth.users.id'], ondelete='CASCADE')
     )
 
     # Create indexes for performance

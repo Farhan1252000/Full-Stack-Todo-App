@@ -3,6 +3,7 @@ import { Task } from '@/types';
 import TaskForm from '@/components/task-form';
 import TaskList from '@/components/task-list';
 import Modal from '@/components/modal';
+import ProtectedRoute from '@/components/layout/ProtectedRoute';
 import { useAppAuth } from '@/context/AuthContext';
 
 const Dashboard: React.FC = () => {
@@ -18,7 +19,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${state.token}`,
@@ -167,90 +168,92 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">My Tasks</h1>
+    <ProtectedRoute>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">My Tasks</h1>
 
-      {/* Task Creation/Editing Form */}
-      <div className="mb-8 p-6 bg-white rounded-lg shadow">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          {editingTask ? 'Edit Task' : 'Create New Task'}
-        </h2>
-        <TaskForm
-          onSubmit={handleSaveTask}
-          initialData={editingTask ? {
-            id: editingTask.id,
-            title: editingTask.title,
-            description: editingTask.description || '',
-            completed: editingTask.completed,
-            dueDate: editingTask.dueDate
-          } : undefined}
-          buttonText={editingTask ? "Update Task" : "Create Task"}
-        />
-        {editingTask && (
+        {/* Task Creation/Editing Form */}
+        <div className="mb-8 p-6 bg-white rounded-lg shadow">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            {editingTask ? 'Edit Task' : 'Create New Task'}
+          </h2>
+          <TaskForm
+            onSubmit={handleSaveTask}
+            initialData={editingTask ? {
+              id: editingTask.id,
+              title: editingTask.title,
+              description: editingTask.description || '',
+              completed: editingTask.completed,
+              dueDate: editingTask.dueDate
+            } : undefined}
+            buttonText={editingTask ? "Update Task" : "Create Task"}
+          />
+          {editingTask && (
+            <button
+              onClick={() => setEditingTask(null)}
+              className="mt-4 text-sm text-gray-500 hover:text-gray-700"
+            >
+              Cancel Edit
+            </button>
+          )}
+        </div>
+
+        {/* Task Filters */}
+        <div className="mb-6 flex space-x-4">
           <button
-            onClick={() => setEditingTask(null)}
-            className="mt-4 text-sm text-gray-500 hover:text-gray-700"
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-md ${
+              filter === 'all'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
           >
-            Cancel Edit
+            All Tasks
           </button>
-        )}
-      </div>
+          <button
+            onClick={() => setFilter('active')}
+            className={`px-4 py-2 rounded-md ${
+              filter === 'active'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => setFilter('completed')}
+            className={`px-4 py-2 rounded-md ${
+              filter === 'completed'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Completed
+          </button>
+        </div>
 
-      {/* Task Filters */}
-      <div className="mb-6 flex space-x-4">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-md ${
-            filter === 'all'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          All Tasks
-        </button>
-        <button
-          onClick={() => setFilter('active')}
-          className={`px-4 py-2 rounded-md ${
-            filter === 'active'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Active
-        </button>
-        <button
-          onClick={() => setFilter('completed')}
-          className={`px-4 py-2 rounded-md ${
-            filter === 'completed'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Completed
-        </button>
-      </div>
+        {/* Task List */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <TaskList
+            tasks={filteredTasks}
+            onToggleComplete={handleToggleTask}
+            onEdit={handleEditTask}
+            onDelete={handleDeleteClick}
+          />
+        </div>
 
-      {/* Task List */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <TaskList
-          tasks={filteredTasks}
-          onToggleComplete={handleToggleTask}
-          onEdit={handleEditTask}
-          onDelete={handleDeleteClick}
-        />
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={isDeleteModalOpen}
+          onClose={closeDeleteModal}
+          title="Confirm Deletion"
+          onConfirm={handleDeleteTask}
+          confirmText="Delete"
+        >
+          <p>Are you sure you want to delete this task? This action cannot be undone.</p>
+        </Modal>
       </div>
-
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={closeDeleteModal}
-        title="Confirm Deletion"
-        onConfirm={handleDeleteTask}
-        confirmText="Delete"
-      >
-        <p>Are you sure you want to delete this task? This action cannot be undone.</p>
-      </Modal>
-    </div>
+    </ProtectedRoute>
   );
 };
 

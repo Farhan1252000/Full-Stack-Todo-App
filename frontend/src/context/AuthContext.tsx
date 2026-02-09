@@ -15,7 +15,7 @@ type AuthAction =
 // Initial state
 const initialState: AuthState = {
   user: null,
-  token: null,
+  token: typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null,
   isLoggedIn: false,
   isLoading: true,
 };
@@ -134,6 +134,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (result?.error) {
         throw new Error(result.error);
       }
+
+      // Dispatch success action after successful signup
+      // The user will be automatically logged in after signup
+      // The session will be updated via the useEffect that monitors session changes
     } catch (error: any) {
       dispatch({
         type: 'LOGIN_FAILURE',

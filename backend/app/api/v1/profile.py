@@ -1,14 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlmodel import Session
 from app.database.session import get_db
-from app.models.user import User
-from app.schemas.user import UserResponse, UserUpdate
+from app.models.user import User, UserRead, UserUpdate
 from app.auth.jwt_bearer import JWTBearer
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
-@router.get("/", response_model=UserResponse)
+@router.get("/", response_model=UserRead)
 async def get_profile(
     current_user: User = Depends(JWTBearer()),
     db: Session = Depends(get_db)
@@ -18,7 +17,7 @@ async def get_profile(
     """
     return current_user
 
-@router.put("/", response_model=UserResponse)
+@router.put("/", response_model=UserRead)
 async def update_profile(
     user_update: UserUpdate,
     current_user: User = Depends(JWTBearer()),
